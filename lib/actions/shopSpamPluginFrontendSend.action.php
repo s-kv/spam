@@ -15,47 +15,37 @@ class shopSpamPluginFrontendSendAction extends shopFrontendAction
         $settings = wa('shop')->getPlugin('spam')->getSettings();
         
         try {
-            $coupm = new shopCouponModel();
-            $coupon['code'] = shopCouponsEditorAction::generateCode();
+            $flexDiscountModel = new shopFlexdiscountPluginModel();
+            $rule = $flexDiscountModel->getDiscount($settings['flex_discount']);
+              
+            if (sizeof($rule['coupons']['generators']) == 1) {
+                $generator = array_shift($rule['coupons']['generators']);
 
-            $coupon['limit'] = $settings['limit'];
-            $coupon['type'] = '%';
-            $coupon['value'] = min(max($settings['procent'], 0), 100);
-            $coupon['value'] = (float) str_replace(',', '.', $coupon['value']);
-            
-            $date = new DateTime();
-            $date->add(new DateInterval('P'.$settings['expire_days'].'D'));
-            $coupon['expire_datetime'] = $date->format('Y-m-d H:i:s');
-            $coupon['create_datetime'] = date('Y-m-d H:i:s');
-            
-            $id = $coupm->insert($coupon);
-            
-            $param['coupon_code'] = $coupon['code'];
-            $param['limit'] = $coupon['limit'];
-            $param['value'] = $coupon['value'];
-            $param['expire_datetime'] = $coupon['expire_datetime'];
+                $rule['coupon'] = $generator;
+                $rule['coupon']['code'] = shopFlexdiscountPluginHelper::generateCoupon($generator['id']);
 
-            $view = wa()->getView();
-            $view->clearAllAssign();
-            $view->assign($param);
+                $view = wa()->getView();
+                $view->clearAllAssign();
+                $view->assign($rule);
 
-            $body = $view->fetch('string:'.$settings['letter']);
-            
-            $mail_message = new waMailMessage($settings['subject'], $body);
-            // Указываем отправителя
-            $mail_message->setFrom($settings['from'], 'Робот Вебасист');
-            // Задаём получателя
-            if ($settings['is_test']) {
-                $this->wh_log('Test mode');
-                $mail_message->setTo($settings['to'], 'Новый пользователь');
-            } else {
-                $this->wh_log('Real mode');
-                $mail_message->setTo($data['email'], 'Новый пользователь');
-            }
-            // Отправка письма
-            $mail_message->send();
-            
-            $this->wh_log('Success mailing');
+                $body = $view->fetch('string:'.$settings['letter']);
+
+                $mail_message = new waMailMessage($settings['subject'], $body);
+                // Указываем отправителя
+                $mail_message->setFrom($settings['from'], 'Робот Вебасист');
+                // Задаём получателя
+                if ($settings['is_test']) {
+                    $this->wh_log('Test mode');
+                    $mail_message->setTo($settings['to'], 'Новый пользователь');
+                } else {
+                    $this->wh_log('Real mode');
+                    $mail_message->setTo($data['email'], 'Новый пользователь');
+                }
+                // Отправка письма
+                $mail_message->send();
+
+                $this->wh_log('Success mailing');
+            }                
         } catch (waDbException $e) {
             $this->wh_log('Doubled coupon code. Rollback');
         } catch (waException $e) {
@@ -77,20 +67,10 @@ class shopSpamPluginFrontendSendAction extends shopFrontendAction
     
     public function execute()
     {
-        //$my_key  = 'EnterAKey!';
         $this->wh_log('==================[ Incoming Request ]==================');
 
         $this->wh_log("Full _REQUEST dump:\n".print_r($_REQUEST,true)); 
         
-        //$_POST['type'] = 'subscribe'; // для теста
-        
-        /*if ( !isset($_GET['key']) ){
-            $this->wh_log('No security key specified, ignoring request'); 
-        } elseif ($_GET['key'] != $my_key) {
-            $this->wh_log('Security key specified, but not correct:');
-            $this->wh_log("\t".'Wanted: "'.$my_key.'", but received "'.$_GET['key'].'"');
-        } else {*/
-  
         // обработка запроса
         $this->wh_log('Processing a "'.$_POST['type'].'" request...');
         switch($_POST['type']){

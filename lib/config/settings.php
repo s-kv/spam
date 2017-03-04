@@ -1,24 +1,13 @@
 <?php
 
 return array(
-    'procent' => array(
-        'title'        => 'Скидка, %',
-        'description'  => 'Процент скидки',
+    'flex_discount' => array(
+        'title'        => 'Гибкая скидка',
+        'description'  => 'Гибкая скидка, с привязанным генератором купонов',
         'value'        => '',
-        'control_type' => waHtmlControl::INPUT,
-    ),
-    'limit' => array(
-        'title'        => 'Количество покупок со скидкой',
-        'description'  => 'Количество покупок со скидкой',
-        'value'        => '',
-        'control_type' => waHtmlControl::INPUT,
-    ),
-    'expire_days' => array(
-        'title'        => 'Количество дней действия',
-        'description'  => 'Срок действия',
-        'value'        => '',
-        'control_type' => waHtmlControl::INPUT,
-    ),
+        'control_type' => waHtmlControl::SELECT,
+        'options_callback' => array('shopSpamPlugin', 'getDiscounts')
+    ),    
     'from' => array(
         'title'        => 'Отправитель письма',
         'description'  => 'e-mail отправителя письма',
@@ -48,5 +37,5 @@ return array(
         'description'  => 'Тестовый получатель письма - для проведения тестирования',
         'value'        => '',
         'control_type' => waHtmlControl::INPUT,
-    )   
+    )
 );
