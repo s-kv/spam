@@ -22,7 +22,14 @@ return array(
     ),    
     'letter' => array(
         'title'        => 'Шаблон письма HTML',
-        'description'  => 'Письмо в формате HTML',
+        'description'  => '{$name} - имя скидки<br/>'
+                        . '{$description} - описание скидки<br/>'
+                        . '{$discount_percentage} - скидка в процентах<br/>'
+                        . '{$discount} - скидка в денежных единицах<br/>'
+                        . '{$discount_currency} - валюта скидки<br/>'
+                        . '{$affiliate_percentage} - бонусы в процентах<br/>'
+                        . '{$affiliate} - скидка в бонусах<br/>'
+                        . '{$coupon.code} - код активного купона',
         'value'        => '',
         'control_type' => waHtmlControl::TEXTAREA,
     ),

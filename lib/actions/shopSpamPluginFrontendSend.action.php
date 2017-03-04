@@ -23,6 +23,12 @@ class shopSpamPluginFrontendSendAction extends shopFrontendAction
 
                 $rule['coupon'] = $generator;
                 $rule['coupon']['code'] = shopFlexdiscountPluginHelper::generateCoupon($generator['id']);
+      
+                // запоминаем соответствие
+                $sspm['email'] = $data['email'];
+                $sspm['coupon_code'] = $rule['coupon']['code'];
+                $model = new shopSpamPluginModel();
+                $model->insert($sspm);
 
                 $view = wa()->getView();
                 $view->clearAllAssign();
@@ -53,16 +59,28 @@ class shopSpamPluginFrontendSendAction extends shopFrontendAction
         }            
     }
     private function unsubscribe($data){
-        wh_log($data['email'] . ' just unsubscribed!');
+        $this->wh_log($data['email'] . ' just unsubscribed!');
+        
+        $model = new shopSpamPluginModel();
+        $sspm = $model->getByField('email', $data['email']);
+        
+        $this->wh_log($sspm['coupon_code'] . ' to delete!');
+        
+        if(!empty($sspm['coupon_code']))
+        {
+            $model->deleteByField('email', $data['email']);
+            $model = new shopFlexdiscountCouponPluginModel();
+            $model->deleteByField('code', $sspm['coupon_code']);
+        }
     }
     private function cleaned($data){
-        wh_log($data['email'] . ' was cleaned from your list!');
+        $this->wh_log($data['email'] . ' was cleaned from your list!');
     }
     private function upemail($data){
-        wh_log($data['old_email'] . ' changed their email address to '. $data['new_email']. '!');
+        $this->wh_log($data['old_email'] . ' changed their email address to '. $data['new_email']. '!');
     }
     private function profile($data){
-        wh_log($data['email'] . ' updated their profile!');
+        $this->wh_log($data['email'] . ' updated their profile!');
     }
     
     public function execute()
